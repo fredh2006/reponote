@@ -14,6 +14,26 @@ export default function Navbar({sticky = true}) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
+  const storeGithubToken = async (userId, token) => {
+    if (!token) return;
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          id: userId,
+          provider_token: token
+        });
+
+      if (error) {
+        console.error('Error storing GitHub token:', error);
+      } else {
+        console.log('✅ GitHub token stored successfully');
+      }
+    } catch (error) {
+      console.error('Error in storeGithubToken:', error);
+    }
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -27,7 +47,6 @@ export default function Navbar({sticky = true}) {
           console.error("Failed to fetch user:", error.message);
         }
       } catch (error) {
-        
         if (error.message !== "Auth session missing!") {
           console.error("Error fetching user:", error.message);
         }
@@ -35,10 +54,13 @@ export default function Navbar({sticky = true}) {
     };
 
     getUser();
-
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      
+      if (session?.user && session?.provider_token) {
+        await storeGithubToken(session.user.id, session.provider_token);
+      }
     });
 
     return () => {
@@ -50,10 +72,12 @@ export default function Navbar({sticky = true}) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
+        scopes: 'repo user:email',
         queryParams: {
           prompt: 'consent',
         },
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/auth/callback`,
+        skipBrowserRedirect: false
       }
     });
 

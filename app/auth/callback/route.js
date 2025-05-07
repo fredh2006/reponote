@@ -31,6 +31,35 @@ const cookieStore = await cookies()
       )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      // Get the user after successful authentication
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (!userError && user) {
+        // Check if user already exists in the users table
+        const { data: existingUser, error: checkError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .single()
+
+        // Only store user data if they don't already exist
+        if (checkError || !existingUser) {
+          const { error: upsertError } = await supabase
+            .from('users')
+            .upsert({
+              id: user.id,
+              email: user.email,
+              github_username: user.user_metadata.user_name,
+              plan: 'free',
+              provider_token: null
+            })
+
+          if (upsertError) {
+            console.error('Error storing user data:', upsertError)
+          }
+        }
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
