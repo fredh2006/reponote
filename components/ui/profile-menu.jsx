@@ -28,7 +28,6 @@ export function ProfileMenu() {
       const { data: { user }, error } = await supabase.auth.getUser();
 
       if (user) {
-        console.log("✅ Logged in user:", user.email, user.user_metadata?.user_name);
         setUser(user);
       } else if (error) {
         console.error("Failed to fetch user:", error.message);

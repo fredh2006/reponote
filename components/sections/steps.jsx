@@ -20,7 +20,7 @@ export default function Steps(){
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Connect Your Repository</h3>
               <p className="text-center text-gray-600 dark:text-gray-300">
-                Link your GitHub, GitLab, or Bitbucket repository to Reponote.
+                Link your GitHub repository to Reponote.
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4">
@@ -29,7 +29,7 @@ export default function Steps(){
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Customize Options</h3>
               <p className="text-center text-gray-600 dark:text-gray-300">
-                Choose your preferred template and customize sections to include.
+                Choose the sections you want to include in your README.
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4">
@@ -38,7 +38,7 @@ export default function Steps(){
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">Generate & Download</h3>
               <p className="text-center text-gray-600 dark:text-gray-300">
-                Our AI generates your README, which you can edit, download, or commit directly.
+                AI generates your README, which you can edit, or commit directly.
               </p>
             </div>
           </div>
