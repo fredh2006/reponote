@@ -2,6 +2,7 @@ import Navbar from "@/components/sections/navbar";
 import Hero from "@/components/sections/hero";
 import Features from "@/components/sections/features";
 import Steps from "@/components/sections/steps";
+import Pricing from "@/components/sections/pricing";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
         <Hero />
         <Features />
         <Steps />
+        <Pricing />
       </main>
     </div>
     </>
