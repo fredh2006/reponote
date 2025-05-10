@@ -1,48 +1,27 @@
-## Project Overview
+# Project Overview
+Reponote leverages AI to help developers effortlessly generate detailed and professional README files for their projects. The application requires GitHub OAuth for login and once authenticated, users are redirected to a creation page where they can generate READMEs. Perfect for developers who need a reliable AI-powered tool to streamline their project documentation process.
 
-I built Reponote to solve the issue of managing and organizing projects easily. With a focus on creating README files efficiently using GitHub authentication, users can make professional READMEs in a structured manner. Reponote is perfect for developers who need a user-friendly tool to generate professional README.md files for their GitHub projects seamlessly by using their GitHub account for authentication.
+# Tech Stack
+Built with Next.js, React, TailwindCSS, Supabase, and Stripe.
 
-## Tech Stack
-
-Built with Next.js, React, Tailwind CSS, Supabase, and Stripe.
-
-## Installation & Setup
-
-#### Prerequisites
-
+# Installation & Setup
+## Prerequisites
 - Node.js
-- npm 
 
-#### Quick Start
-
+## Quick Start
 1. Clone the repository:
-   
-       $ git clone <repository-url>
-       $ cd reponote
+bash
+git clone https://github.com/username/reponote.git
+cd reponote
+npm install
+npm run dev
+2. For any required environment variables (like `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`):
+   - Create a `.env` file in the root directory.
+   - Add the required environment variables such as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `STRIPE_SECRET_KEY`.
 
-2. Install dependencies:
-   
-       $ npm install
+# Project Structure
+/app/page.js: Main application entry rendering various sections.
+/components/sections/hero.jsx: Hero section including GitHub OAuth login via Supabase.
 
-3. Set up environment variables:
-    - Create a `.env.local` file at the root of the project.
-    - Add necessary environment variables such as `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `STRIPE_SECRET_KEY`.
-    
-4. Start the development server:
-
-       $ npm run dev
-
-5. For stripe setup, run:
-   
-       $ stripe listen --forward-to localhost:3000/api/stripe
-
-## Project Structure
-
-`package.json`: Defines project scripts and dependencies.  
-`app/page.js`: Main landing page.
-`components/sections/hero.jsx`: Hero section handling GitHub authentication through Supabase and mock README preview.  
-`lib/stripe.js`: Initializes Stripe with secret key for server-side operations.  
-
-## License
-
-License: Not currently specified
+# License
+License: Not currently specified.
