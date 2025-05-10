@@ -1,36 +1,48 @@
-# Project Overview
-I built Reponote to solve the issue whereby developers need to spend excessive time creating and maintaining README files for their projects. By using AI to automatically generate professional README files, Reponote streamlines this process, allowing developers to focus more on coding and less on documentation. This project is perfect for developers and project managers who need a quick, reliable way to create well-organized and professional README files for their GitHub repositories.
+## Project Overview
 
-# Tech Stack
-Built with Next.js, React, TailwindCSS, Supabase, and Stripe.
+I built Reponote to solve the issue of managing and organizing projects easily. With a focus on creating README files efficiently using GitHub authentication, users can make professional READMEs in a structured manner. Reponote is perfect for developers who need a user-friendly tool to generate professional README.md files for their GitHub projects seamlessly by using their GitHub account for authentication.
 
-# Installation & Setup
-### Prerequisites
-- Node.js (version specified in `package.json` if any)
-- npm (version specified in `package.json` if any)
-- Supabase account
-- Stripe account
+## Tech Stack
 
-### Quick Start
-1. Clone the repository and navigate to the project directory:
-   $ git clone [repository_url] && cd [repository_directory]
+Built with Next.js, React, Tailwind CSS, Supabase, and Stripe.
 
-2. Install dependencies using npm:
-   $ npm install
+## Installation & Setup
 
-3. Set up your environment variables (create a `.env` file in the root directory with the following variables):
-   STRIPE_SECRET_KEY=your_stripe_secret_key
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+#### Prerequisites
 
+- Node.js
+- npm 
+
+#### Quick Start
+
+1. Clone the repository:
+   
+       $ git clone <repository-url>
+       $ cd reponote
+
+2. Install dependencies:
+   
+       $ npm install
+
+3. Set up environment variables:
+    - Create a `.env.local` file at the root of the project.
+    - Add necessary environment variables such as `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `STRIPE_SECRET_KEY`.
+    
 4. Start the development server:
-   $ npm start
 
-# Project Structure
-`package.json`: Manages project dependencies and scripts for building and running the Next.js app.
-`app/page.js`: Serves as the main page layout where `Navbar`, `Hero`, `Features`, `Steps`, and `Pricing` components are rendered.
-`components/sections/hero.jsx`: Handles the hero section introducing Reponote and includes GitHub authentication via Supabase.
-`lib/stripe.js`: Contains server-side Stripe API configuration and initialization.
+       $ npm run dev
 
-# License
+5. For stripe setup, run:
+   
+       $ stripe listen --forward-to localhost:3000/api/stripe
+
+## Project Structure
+
+`package.json`: Defines project scripts and dependencies.  
+`app/page.js`: Main landing page.
+`components/sections/hero.jsx`: Hero section handling GitHub authentication through Supabase and mock README preview.  
+`lib/stripe.js`: Initializes Stripe with secret key for server-side operations.  
+
+## License
+
 License: Not currently specified
