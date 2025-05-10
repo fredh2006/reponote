@@ -39,9 +39,9 @@ export default function Features(){
           <div className="rounded-full bg-gray-100 p-4 dark:bg-gray-800">
             <FileText className="h-6 w-6 text-gray-900 dark:text-gray-100" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Customizable Templates</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Streamlined Workflow</h3>
           <p className="text-center text-gray-600 dark:text-gray-300">
-            Choose from various templates or create your own to match your project's style.
+            Edit and upload README's straight to GitHub.
           </p>
         </div>
       </div>

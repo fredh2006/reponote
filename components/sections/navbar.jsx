@@ -1,12 +1,13 @@
 'use client';
 
 import Link from "next/link";
-import { FileText, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ProfileMenu } from "@/components/ui/profile-menu";
+import Image from "next/image";
 
 export default function Navbar({ sticky = true }) {
   const [user, setUser] = useState(null);
@@ -72,10 +73,16 @@ export default function Navbar({ sticky = true }) {
     <header className={`border-b w-full bg-white/80 backdrop-blur-sm ${sticky ? 'sticky top-0' : ''} z-50`}>
       <div className="w-full flex h-16 items-center px-4 md:px-8 lg:px-12 justify-between relative">
         {/* Logo */}
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <FileText className="h-6 w-6 text-gray-900" />
-            <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-500 bg-clip-text text-transparent">Reponote</span>
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center -space-x-1">
+            <Image
+              src="/logo.png"
+              alt="Reponote Logo"
+              width={48}
+              height={48}
+              className="h-12 w-auto"
+            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-500 bg-clip-text text-transparent">Reponote</span>
           </Link>
         </div>
 
@@ -84,12 +91,14 @@ export default function Navbar({ sticky = true }) {
           {user ? (
             <>
               <Link href="/create" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Create</Link>
+              <Link href="/docs" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Docs</Link>
               <Link href="/pricing" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Pricing</Link>
             </>
           ) : (
             <>
               <Link href={isHomePage ? "#features" : "/#features"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Features</Link>
               <Link href={isHomePage ? "#how-it-works" : "/#how-it-works"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">How It Works</Link>
+              <Link href="/docs" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Docs</Link>
               <Link href={isHomePage ? "#pricing" : "/#pricing"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Pricing</Link>
             </>
           )}
@@ -150,6 +159,7 @@ export default function Navbar({ sticky = true }) {
             {/* Links */}
             <div className="space-y-2">
               <Link href="/create" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Create</Link>
+              <Link href="/docs" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Docs</Link>
               <Link href="/pricing" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
               <Link href="/profile" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>View Profile</Link>
               <a href={`https://github.com/${user.user_metadata.user_name}`} target="_blank" rel="noopener noreferrer" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>GitHub Profile</a>
@@ -174,6 +184,7 @@ export default function Navbar({ sticky = true }) {
           <div className="px-4 py-4 space-y-2">
             <Link href={isHomePage ? "#features" : "/#features"} className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Features</Link>
             <Link href={isHomePage ? "#how-it-works" : "/#how-it-works"} className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>How It Works</Link>
+            <Link href="/docs" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Docs</Link>
             <Link href={isHomePage ? "#pricing" : "/#pricing"} className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Pricing</Link>
           </div>
         </div>

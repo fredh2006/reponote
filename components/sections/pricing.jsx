@@ -173,6 +173,23 @@ export default function Pricing() {
                     >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
+                    Base tier models
+                  </li>
+                  <li className="flex items-center text-gray-600 dark:text-gray-300">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2 h-4 w-4 text-green-500"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
                     One integration
                   </li>
                 </ul>
@@ -214,6 +231,23 @@ export default function Pricing() {
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                     Unlimited READMEs
+                  </li>
+                  <li className="flex items-center text-gray-600 dark:text-gray-300">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2 h-4 w-4 text-green-500"
+                    >
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Pro-tier models
                   </li>
                   <li className="flex items-center text-gray-600 dark:text-gray-300">
                     <svg
@@ -287,7 +321,7 @@ export default function Pricing() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  All integrations (coming soon!)
+                  Pro-tier models
                 </li>
                 <li className="flex items-center text-gray-600 dark:text-gray-300">
                   <svg

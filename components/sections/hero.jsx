@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from "../ui/button";
-import { ArrowRight, Github } from "lucide-react";
+import { ArrowRight, Github, FileText } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Hero(){
     const supabase = createClient();
@@ -64,9 +65,11 @@ export default function Hero(){
                   >
                     {user ? 'Create ' : 'Get Started'} <ArrowRight className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="lg" className="hover:bg-gray-100 hover:text-gray-900 transition-colors gap-2">
-                    <Github className="h-4 w-4" /> View on GitHub
-                  </Button>
+                  <Link href="/docs">
+                    <Button variant="outline" size="lg" className="hover:bg-gray-100 hover:text-gray-900 transition-colors gap-2">
+                      <FileText className="h-4 w-4" /> View Documentation
+                    </Button>
+                  </Link>
                 </div>
               </div>
               <div className="flex items-center justify-center">
