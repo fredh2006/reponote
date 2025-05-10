@@ -1,27 +1,25 @@
-# Project Overview
-Reponote leverages AI to help developers effortlessly generate detailed and professional README files for their projects. The application requires GitHub OAuth for login and once authenticated, users are redirected to a creation page where they can generate READMEs. Perfect for developers who need a reliable AI-powered tool to streamline their project documentation process.
+## 1. Project Overview
+This project is a web application designed to help users generate professional README.md files for their repositories. It streamlines the process by providing a user-friendly interface, authentication via Supabase and GitHub OAuth, and a live README preview. Perfect for developers, open-source contributors, and anyone looking to quickly create high-quality project documentation.
 
-# Tech Stack
-Built with Next.js, React, TailwindCSS, Supabase, and Stripe.
+## 2. Tech Stack
+Built with Next.js, React, Supabase, Stripe
 
-# Installation & Setup
-## Prerequisites
+## 3. Installation & Setup
+
+**Prerequisites**
 - Node.js
+- npm
 
-## Quick Start
-1. Clone the repository:
-bash
-git clone https://github.com/username/reponote.git
-cd reponote
-npm install
-npm run dev
-2. For any required environment variables (like `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`):
-   - Create a `.env` file in the root directory.
-   - Add the required environment variables such as `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `STRIPE_SECRET_KEY`.
+**Quick Start**
+1. $ git clone [repository-url]
+2. $ cd reponote
+3. $ npm install
+4. Set up environment variables for Supabase and Stripe as required
+5. $ npm run dev
 
-# Project Structure
-/app/page.js: Main application entry rendering various sections.
-/components/sections/hero.jsx: Hero section including GitHub OAuth login via Supabase.
+## 4. Project Structure
+/app/page.js: Main page rendering the navigation bar, hero, features, steps, and pricing sections
+/components/sections/hero.jsx: Hero section component handling authentication and displaying a README preview
 
-# License
-License: Not currently specified.
+## 5. License
+No license in use.
