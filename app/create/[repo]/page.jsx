@@ -26,7 +26,7 @@ export default function CreateRepo({ params }) {
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
 
-    const key = process.env.NEXT_PUBLIC_API_KEY;
+    const key = process.env.NEXT_PUBLIC_DEEPSEEK_KEY;
 
     const getProviderToken = async () => {
         try {
@@ -207,7 +207,7 @@ export default function CreateRepo({ params }) {
                 if (deps?.['@nestjs/core']) return 'NestJS';
                 if (deps?.['@remix-run/core']) return 'Remix';
                 return 'None';
-            } 
+            }
             // Python frameworks
             else if (topLanguage === 'Python') {
                 const reqPath = await findFileRecursive('requirements.txt');
@@ -263,7 +263,7 @@ export default function CreateRepo({ params }) {
             else if (topLanguage === 'Java') {
                 const pomPath = await findFileRecursive('pom.xml');
                 const gradlePath = await findFileRecursive('build.gradle');
-                
+
                 let content = '';
                 if (pomPath) {
                     content = await fetchFileContent(pomPath);
@@ -382,16 +382,77 @@ export default function CreateRepo({ params }) {
         }
     }
 
+    const summarizeFilesWithAI = async (files) => {
+        try {
+            const summarizedFiles = await Promise.all(
+                files.map(async (file) => {
+                    // Skip small files (under 500 chars) - no need to summarize
+                    if (file.content.length <= 1500) return file;
+
+                    const prompt = `
+              Create a concise technical summary (max 300 characters) of this file for README documentation.
+              Focus ONLY on:
+              - Core functionality
+              - Key configurations
+              - Critical exports/imports
+              
+              File: ${file.path}
+              Content: ${file.content}
+              
+              Rules:
+              - Omit implementation details
+              - Never reference other files
+              - Use present tense ("Handles X" not "This file handles X")
+              - Return ONLY the summary text
+              `;
+
+                    const response = await fetch('/api/summarize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ prompt })
+                    });
+
+                    if (!response.ok) throw new Error('Summarization failed');
+
+                    const data = await response.json();
+                    return {
+                        path: file.path,
+                        content: data.content
+                    };
+                })
+            );
+
+            return summarizedFiles;
+        } catch (error) {
+            console.error("File summarization error:", error);
+            // Fallback to original files if summarization fails
+            return files;
+        }
+    };
+
     const generateReadmeFromAI = async () => {
         if (selectedFiles.length === 0) return;
 
         setGenerating(true);
-        const fileContents = await Promise.all(
-            selectedFiles.map(async (file) => ({
-                path: file.path,
-                content: await fetchFileContent(file.path)
-            }))
+        const summarizedFiles = await summarizeFilesWithAI(
+            await Promise.all(
+                selectedFiles.map(async (file) => ({
+                    path: file.path,
+                    content: await fetchFileContent(file.path)
+                }))
+            )
         );
+
+        const { data: userData } = await supabase
+            .from('users')
+            .select('plan')
+            .eq('id', user.id)
+            .single();
+        const model = userData?.plan === 'pro' || userData?.plan === 'lifetime'
+            ? 'gpt-4.1'
+            : 'deepseek/deepseek-r1-zero:free';
 
         const languagesList = Object.keys(repoLanguages).join(', ') || 'Unknown';
         const frameworkInfo = frameworks ? `Framework: ${frameworks}` : 'No framework detected';
@@ -401,68 +462,211 @@ export default function CreateRepo({ params }) {
             ? collaborators.map(c => `- [${c.login}](${c.html_url})`).join('\n')
             : null;
 
-        const prompt = `
-Your task is to create a clean, markdown-formatted README using the context and code snippets provided. The README should include the following sections - Make sure to include the titles of the section as well:
-1. **Project Overview**: What the project does and its purpose. Keep this short, clean, and professional. Write 3 sentences.
-2. **Tech Stack**: For this step, only include the name of the technology, nothing else. List only the major technologies used in the project (e.g., React, Node.js, Python, etc.) and third-party services (e.g. auth providers, databases, external APIS). Write them in a single sentence starting with "This project was created using" followed by a comma-separated list of technologies. Do not include version numbers, plugins, or development tools. If there are frameworks involved, don't inclcude the languages used.
-3. **Installation & Setup**: How to install and run the project - use bash for this part.
-4. **Project Structure**: Only include this section if you can confidently determine it **based solely on the files provided**. Only describe files whose content you actually see and ensure that the path to the file is correct. Do **not** mention any files or modules that are only referenced in comments, docstrings, or imports if their content isn't available. For each file, write **at most one sentence** summarizing its purpose, don't include any other information.
-5. **License**: Mention the license or if none, say: No license is currently being used."
-${collaboratorInfo ? `5. **Collaborators**\n${collaboratorInfo}` : ''}
-        
-**Instructions:**
-- Write in the first person (e.g., Use the title of the project) - make it sound like you created the project.
-- Be confident in the information you provide, don't say "appear", "seems", "likely", or any words like that.
-- Avoid overly formal or robotic phrasing.
-- Format using Markdown , but do **not** use triple backticks or boxed formatting.
-- Return only the raw README content—no explanations, JSON, or extra messages.
-- Do not include any other text other than the sections above.
-        
-## Context
-        
-**Languages**: ${languagesList}  
-**Framework**: ${frameworkInfo}  
-**License**: ${license}  
-        
-### Files Given:
-${fileContents.map(f => `#### ${f.path}\n${f.content.slice(0, 1500)}`).join("\n\n")}
-`;
-
-        console.log(key);
-        console.log(prompt);
-
         try {
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${key}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "model": "deepseek/deepseek-r1-zero:free",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "temperature": 0.1,
-                            "content": prompt
-                        }
-                    ]
-                })
-            });
+            const prompt = `
+            Generate a professional README.md in first-person perspective using EXACTLY this structure and rules:
+            
+            # Required Sections (IN THIS ORDER)
+            
+            ## 1. Project Overview
+            - 3 concise sentences following this template:
+              1. Core functionality of this repository. Write 2 sentences.
+              2. Ideal user ("Perfect for [target users] who need...")
+            - Write in first person perspective, and put all 3 sentences in one paragraph. 
+            
+            ## 2. Tech Stack
+            - Format: "Built with [Technology1], [Technology2], [Technology3]"
+            - Include ONLY:
+              - Primary frameworks (React, Django, etc.)
+              - Core languages (only if no framework exists)
+              - Essential services (AWS, Firebase, etc.)
+            - Exclude:
+              - Development tools (Webpack, Babel)
+              - Linters/formatters
+              - Version numbers
+            - ENSURE you don't mention anything else about the technolgy, just their name.
+            
+            ## 3. Installation & Setup
+            ### Required Sub-sections:
+            **Prerequisites**  
+            - Bulleted list of required software  
+            - Include versions ONLY if specified in files
+            - ENSURE you don't mention "version specified in files" or anything like that, just list the software.
+            
+            **Quick Start**     
+            1. Numbered steps using bash commands  
+            2. Code blocks WITHOUT backticks:  
+               $ npm install  
+               $ npm start  
+            3. Include ONE environment setup example if relevant
+            
+            ## 4. Project Structure
+            ${summarizedFiles.length >= 3 ? `
+            - Format per line: \`/path/to/file\`: Brief purpose (≤12 words)
+            - Include only files with visible content
+            - Never infer unverified relationships
+            - Don't include files you only see from imports, only describe files that have been directly given to you.
+            - Ensure that each path is on a new line.
+            - Example:  
+              \`/src/index.js\`: Main application entry point  
+              \`/config/db.js\`: Database connection configuration  
+            ` : 'SKIP THIS SECTION'}
+            
+            ## 5. License
+            - Use exact phrasing:  
+              ${license !== 'No license specified'
+                ? `License: ${license}`
+                : 'License: Not currently specified'}
+            
+            ${collaboratorInfo ? `
+            ## 6. Contributors  
+            ${collaboratorInfo}` : ''}
+            
+            # Critical Rules
+            1. ABSOLUTELY NO markdown code blocks (e.g. \`\`\`)
+            2. Max 80 characters per line
+            3. Never reference files not explicitly shown
+            4. Use ONLY these section headers verbatim
+            5. Omit sections without confident information
+            6. Never use: "appears", "seems", "likely", "probably"
+            
+            # Context (DO NOT MENTION IN README)
+            || Languages: ${languagesList}  
+            || Framework: ${frameworkInfo}  
+            || File Analysis:  
+            ${summarizedFiles.map(f => `|| ${f.path}: ${f.content}`).join('\n')}
+            `;
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch from AI');
+            console.log(prompt)
+            if (model === 'deepseek/deepseek-r1-zero:free') {
+                console.log(model)
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${key}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "deepseek/deepseek-r1-zero:free",
+                        "messages": [
+                            {
+                                "role": "user",
+                                "temperature": 0.3,
+                                "content": prompt
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch from AI');
+                }
+
+                const data = await response.json();
+                console.log(data)
+                let aiReadme = data.choices[0].message.content;
+
+                aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
+                aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
+                aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
+
+                setReadme(aiReadme.trim());
+            } else {
+                console.log(model)
+                const prompt = `
+You are generating a professional README.md in first-person voice. Follow the exact structure below. Only include sections with confidently available data.
+
+---
+
+## 1. Project Overview
+Write one paragraph with 3 sentences:
+1. What this project does and why you built it.
+2. A second sentence expanding its core functionality.
+3. Who it’s for. Start with “Perfect for…”
+
+## 2. Tech Stack
+- Use this exact format: "Built with X, Y, Z"
+- Only include frameworks, core languages (if no framework), and key services (e.g. Firebase)
+- Do NOT include tools, linters, or version numbers
+- ENSURE you don't mention anything else about the technolgy, just their name.
+
+## 3. Installation & Setup
+
+**Prerequisites**
+- List required software (include versions if shown in files)
+- Do not reference how versions were detected
+- ENSURE you don't mention "version specified in files" or anything like that, just list the software.
+
+
+**Quick Start**
+- Show numbered install/run steps using bash syntax
+- Code must be shown like this:
+  $ npm install
+  $ npm start
+- Include environment variable setup if relevant
+- Include information about cloning the repository if relevant
+
+${summarizedFiles.length >= 3 ? `
+
+## 4. Project Structure
+List important files like this:
+\`/src/index.js\`: Main application entry point  
+\`/config/db.js\`: Database connection configuration  
+
+- Use around 20 words per file
+- Only include files with direct content provided
+- Never infer from imports
+` : ''}
+
+## 5. License
+${license !== 'No license specified' ? 'License: ' + license : 'No license in use.'}
+
+${collaboratorInfo ? `
+
+## 6. Contributors
+${collaboratorInfo}` : ''}
+
+---
+
+### Rules (Very Important)
+- Never use backticks or markdown code blocks
+- Use ONLY these section headers
+- Do NOT reference files unless content was provided
+- Never say “appears,” “likely,” “seems,” or similar
+- Be confident, clean, and descriptive in your writing
+
+---
+
+### Internal Context (DO NOT INCLUDE)
+Languages: ${languagesList}
+Framework: ${frameworkInfo}
+${summarizedFiles.map(f => `File: ${f.path}\n${f.content}`).join('\n')}
+`
+                console.log(prompt)
+                const response = await fetch('/api/openai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt,
+                        model
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate README');
+                }
+
+                const data = await response.json();
+                let aiReadme = data.content;
+
+                aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
+                aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
+                aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
+
+                setReadme(aiReadme.trim());
             }
-
-            const data = await response.json();
-            console.log(data)
-            let aiReadme = data.choices[0].message.content;
-
-            aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
-            aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
-            aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
-
-            setReadme(aiReadme.trim());
         } catch (error) {
             console.error('Error generating README from AI:', error);
         } finally {
