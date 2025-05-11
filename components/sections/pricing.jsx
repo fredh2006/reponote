@@ -156,7 +156,7 @@ export default function Pricing() {
                     >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    5 READMEs per month
+                    1 README
                   </li>
                   <li className="flex items-center text-gray-600 dark:text-gray-300">
                     <svg

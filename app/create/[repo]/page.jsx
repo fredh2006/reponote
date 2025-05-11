@@ -403,6 +403,7 @@ export default function CreateRepo({ params }) {
               - Omit implementation details
               - Never reference other files
               - Use present tense ("Handles X" not "This file handles X")
+              - If the file doesn't contain code, just say "This file doesn't contain code"
               - Return ONLY the summary text
               `;
 
@@ -434,6 +435,19 @@ export default function CreateRepo({ params }) {
 
     const generateReadmeFromAI = async () => {
         if (selectedFiles.length === 0) return;
+
+        // Check usage limit for free plan
+        if (user?.id) {
+            const { data: userData, error } = await supabase
+                .from('users')
+                .select('plan, uses')
+                .eq('id', user.id)
+                .single();
+            if (!error && userData?.plan === 'free' && (userData?.uses || 0) >= 1) {
+                alert('You have reached your free usage limit. Upgrade to Pro for unlimited README generations.');
+                return;
+            }
+        }
 
         setGenerating(true);
         const summarizedFiles = await summarizeFilesWithAI(
@@ -537,42 +551,96 @@ export default function CreateRepo({ params }) {
             ${summarizedFiles.map(f => `|| ${f.path}: ${f.content}`).join('\n')}
             `;
 
-            console.log(prompt)
             if (model === 'deepseek/deepseek-r1-zero:free') {
-                console.log(model)
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${key}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "model": "deepseek/deepseek-r1-zero:free",
-                        "messages": [
-                            {
-                                "role": "user",
-                                "temperature": 0.3,
-                                "content": prompt
-                            }
-                        ]
-                    })
-                });
+                try {
+                    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${key}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "model": "deepseek/deepseek-r1-zero:free",
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "temperature": 0.3,
+                                    "content": prompt
+                                }
+                            ]
+                        })
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch from AI');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch from AI');
+                    }
+
+                    const data = await response.json();
+                    let aiReadme = data.choices[0].message.content;
+
+                    aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
+                    aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
+                    aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
+
+                    setReadme(aiReadme.trim());
+
+                    if (user?.id) {
+                        const { data: userData, error } = await supabase
+                            .from('users')
+                            .select('uses')
+                            .eq('id', user.id)
+                            .single();
+                        if (!error) {
+                            const newUses = (userData?.uses || 0) + 1;
+                            await supabase
+                                .from('users')
+                                .update({ uses: newUses })
+                                .eq('id', user.id);
+                        }
+                    }
+                } catch (error) {
+                    // Fallback to gpt-4.1 if DeepSeek fails
+                    const fallbackPrompt = prompt;
+                    const response = await fetch('/api/openai', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            prompt: fallbackPrompt,
+                            model: 'gpt-4.1'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to generate README with fallback model');
+                    }
+
+                    const data = await response.json();
+                    let aiReadme = data.content;
+
+                    aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
+                    aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
+                    aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
+
+                    setReadme(aiReadme.trim());
+
+                    if (user?.id) {
+                        const { data: userData, error } = await supabase
+                            .from('users')
+                            .select('uses')
+                            .eq('id', user.id)
+                            .single();
+                        if (!error) {
+                            const newUses = (userData?.uses || 0) + 1;
+                            await supabase
+                                .from('users')
+                                .update({ uses: newUses })
+                                .eq('id', user.id);
+                        }
+                    }
                 }
-
-                const data = await response.json();
-                console.log(data)
-                let aiReadme = data.choices[0].message.content;
-
-                aiReadme = aiReadme.replace(/\\boxed\s*{```(?:markdown|text)?\n([\s\S]*?)\n```}/g, '$1');
-                aiReadme = aiReadme.replace(/\\boxed\s*{([\s\S]*?)}/g, '$1');
-                aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
-
-                setReadme(aiReadme.trim());
             } else {
-                console.log(model)
                 const prompt = `
 You are generating a professional README.md in first-person voice. Follow the exact structure below. Only include sections with confidently available data.
 
@@ -582,7 +650,7 @@ You are generating a professional README.md in first-person voice. Follow the ex
 Write one paragraph with 3 sentences:
 1. What this project does and why you built it.
 2. A second sentence expanding its core functionality.
-3. Who it’s for. Start with “Perfect for…”
+3. Who it's for. Start with "Perfect for..."
 
 ## 2. Tech Stack
 - Use this exact format: "Built with X, Y, Z"
@@ -632,7 +700,7 @@ ${collaboratorInfo}` : ''}
 - Never use backticks or markdown code blocks
 - Use ONLY these section headers
 - Do NOT reference files unless content was provided
-- Never say “appears,” “likely,” “seems,” or similar
+- Never say "appears," "likely," "seems," or similar
 - Be confident, clean, and descriptive in your writing
 
 ---
@@ -642,7 +710,6 @@ Languages: ${languagesList}
 Framework: ${frameworkInfo}
 ${summarizedFiles.map(f => `File: ${f.path}\n${f.content}`).join('\n')}
 `
-                console.log(prompt)
                 const response = await fetch('/api/openai', {
                     method: 'POST',
                     headers: {
@@ -666,6 +733,21 @@ ${summarizedFiles.map(f => `File: ${f.path}\n${f.content}`).join('\n')}
                 aiReadme = aiReadme.replace(/```(?:markdown|text)?\n?([\s\S]*?)\n?```/g, '$1');
 
                 setReadme(aiReadme.trim());
+
+                if (user?.id) {
+                    const { data: userData, error } = await supabase
+                        .from('users')
+                        .select('uses')
+                        .eq('id', user.id)
+                        .single();
+                    if (!error) {
+                        const newUses = (userData?.uses || 0) + 1;
+                        await supabase
+                            .from('users')
+                            .update({ uses: newUses })
+                            .eq('id', user.id);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error generating README from AI:', error);
