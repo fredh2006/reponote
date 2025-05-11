@@ -14,6 +14,7 @@ export default function Create(){
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [user, setUser] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchUserAndRepos = async () => {
@@ -23,8 +24,6 @@ export default function Create(){
                 if (userError) throw userError;
                 
                 setUser(user);
-
-                console.log(user)
                 
                 // Get user data from the users table
                 const { data: userData, error: userDataError } = await supabase
@@ -36,6 +35,8 @@ export default function Create(){
                 if (userDataError) throw userDataError;
                 
                 const provider_token = userData?.provider_token;
+
+                console.log(provider_token)
                 
                 if (!provider_token) {
                     setError('GitHub access token not found. Please log out and log in again to grant repository access.');

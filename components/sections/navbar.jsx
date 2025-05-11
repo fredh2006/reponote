@@ -17,6 +17,8 @@ export default function Navbar({ sticky = true }) {
   const isHomePage = pathname === '/';
 
   const storeGithubToken = async (userId, token) => {
+    console.log(token)
+    console.log(userId)
     if (isHomePage && token) {
       const { error } = await supabase
         .from('users')
@@ -40,7 +42,9 @@ export default function Navbar({ sticky = true }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
-        if (session?.user?.provider_token) {
+        console.log(session)
+        console.log(session?.provider_token)
+        if (session?.provider_token) {
           await storeGithubToken(session.user.id, session.provider_token);
         }
       }
@@ -98,8 +102,8 @@ export default function Navbar({ sticky = true }) {
             <>
               <Link href={isHomePage ? "#features" : "/#features"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Features</Link>
               <Link href={isHomePage ? "#how-it-works" : "/#how-it-works"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">How It Works</Link>
-              <Link href="/docs" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Docs</Link>
               <Link href={isHomePage ? "#pricing" : "/#pricing"} className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Pricing</Link>
+              <Link href="/docs" className="text-sm font-medium hover:text-gray-900 hover:underline underline-offset-4 transition-colors">Docs</Link>
             </>
           )}
         </nav>
