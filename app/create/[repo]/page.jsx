@@ -684,6 +684,9 @@ List important files like this:
 - Use around 20 words per file
 - Only include files with direct content provided
 - Never infer from imports
+- Format per line: **include literal backticks** like this: \`/path/to/file\`: Brief description
+- Each file path **must** be surrounded by backticks — this is mandatory
+- You MUST surround each file path with backticks like \`this\`
 ` : ''}
 
 ## 5. License
