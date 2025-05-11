@@ -17,7 +17,7 @@ export default function Navbar({ sticky = true }) {
   const isHomePage = pathname === '/';
 
   const storeGithubToken = async (userId, token) => {
-    if (isHomePage && token) {
+    if (token) {
       const { error } = await supabase
         .from('users')
         .upsert({ id: userId, provider_token: token });

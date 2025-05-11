@@ -35,6 +35,9 @@ const cookieStore = await cookies()
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       
       if (!userError && user) {
+        // Get the session to access the provider token
+        const { data: { session } } = await supabase.auth.getSession()
+        
         // Check if user already exists in the users table
         const { data: existingUser, error: checkError } = await supabase
           .from('users')
@@ -51,11 +54,21 @@ const cookieStore = await cookies()
               email: user.email,
               github_username: user.user_metadata.user_name,
               plan: 'free',
-              provider_token: null
+              provider_token: session?.provider_token || null
             })
 
           if (upsertError) {
             console.error('Error storing user data:', upsertError)
+          }
+        } else {
+          // Update the provider token for existing users
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ provider_token: session?.provider_token })
+            .eq('id', user.id)
+
+          if (updateError) {
+            console.error('Error updating provider token:', updateError)
           }
         }
       }

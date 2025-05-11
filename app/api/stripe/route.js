@@ -32,8 +32,6 @@ export async function POST(req) {
       return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
     }
 
-    console.log('Processing webhook event:', event.type);
-
     // Handle subscription cancellation
     if (event.type === 'customer.subscription.deleted') {
       const subscription = event.data.object;
@@ -100,7 +98,6 @@ export async function POST(req) {
 
             if (subscriptions.data.length > 0) {
               await stripe.subscriptions.cancel(subscriptions.data[0].id);
-              console.log('Successfully cancelled existing subscription');
             }
           } catch (error) {
             console.error('Error cancelling subscription:', error);
@@ -124,7 +121,6 @@ export async function POST(req) {
           return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
         }
 
-        console.log('Successfully updated user plan and stripe customer ID:', updateData);
       }
     }
 
