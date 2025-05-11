@@ -17,8 +17,6 @@ export default function Navbar({ sticky = true }) {
   const isHomePage = pathname === '/';
 
   const storeGithubToken = async (userId, token) => {
-    console.log(token)
-    console.log(userId)
     if (isHomePage && token) {
       const { error } = await supabase
         .from('users')
@@ -42,8 +40,6 @@ export default function Navbar({ sticky = true }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setUser(session?.user ?? null);
-        console.log(session)
-        console.log(session?.provider_token)
         if (session?.provider_token) {
           await storeGithubToken(session.user.id, session.provider_token);
         }
