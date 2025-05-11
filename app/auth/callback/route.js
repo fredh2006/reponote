@@ -4,58 +4,37 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 export async function GET(request) {
-  const cookieStore = await cookies()
+const cookieStore = await cookies()
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
   if (code) {
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+          cookies: {
+            getAll() {
+              return cookieStore.getAll()
+            },
+            setAll(cookiesToSet) {
+              try {
+                cookiesToSet.forEach(({ name, value, options }) =>
+                  cookieStore.set(name, value, options)
+                )
+              } catch {
+              }
+            },
           },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              )
-            } catch (error) {
-              console.error('Error setting cookies:', error)
-            }
-          },
-        },
-      }
-    )
-
-    try {
-      const { error } = await supabase.auth.exchangeCodeForSession(code)
-      
-      if (error) {
-        console.error('Error exchanging code for session:', error)
-        return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-      }
-
+        }
+      )
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
       // Get the user after successful authentication
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       
-      if (userError) {
-        console.error('Error getting user:', userError)
-        return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-      }
-
-      if (user) {
-        // Get the session to access the provider token
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (!session?.provider_token) {
-          console.error('No provider token in session')
-          return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-        }
-
+      if (!userError && user) {
         // Check if user already exists in the users table
         const { data: existingUser, error: checkError } = await supabase
           .from('users')
@@ -72,23 +51,11 @@ export async function GET(request) {
               email: user.email,
               github_username: user.user_metadata.user_name,
               plan: 'free',
-              provider_token: session.provider_token
+              provider_token: null
             })
 
           if (upsertError) {
             console.error('Error storing user data:', upsertError)
-            return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-          }
-        } else {
-          // Update the provider token for existing users
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ provider_token: session.provider_token })
-            .eq('id', user.id)
-
-          if (updateError) {
-            console.error('Error updating provider token:', updateError)
-            return NextResponse.redirect(`${origin}/auth/auth-code-error`)
           }
         }
       }
@@ -103,12 +70,9 @@ export async function GET(request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`)
       }
-    } catch (error) {
-      console.error('Unexpected error in auth callback:', error)
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
     }
   }
 
-  // If no code is present, redirect to error page
+  // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
