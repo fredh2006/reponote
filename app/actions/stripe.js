@@ -23,6 +23,8 @@ export const subscribeAction = async ({userId, paymentType = 'subscription'}) =>
         mode: paymentType === 'subscription' ? 'subscription' : 'payment',
         success_url: `${process.env.NEXT_PUBLIC_BASE_URL}`,
         cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}`,
+        automatic_tax: { enabled: true },
+        tax_id_collection: { enabled: true },
     });
 
     return url;
