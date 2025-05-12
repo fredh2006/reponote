@@ -39,7 +39,7 @@ export default function PricingPage(){
       console.error("No user found");
       return;
     }
-    console.log(user.id);
+
     const url = await subscribeAction({ 
       userId: user.id,
       paymentType: paymentType

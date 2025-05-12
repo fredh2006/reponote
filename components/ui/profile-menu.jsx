@@ -38,7 +38,6 @@ export function ProfileMenu() {
   }, [supabase]); 
 
   const handleLogout = async () => {
-    console.log("🔴 Logging out user:", user.email);
     await supabase.auth.signOut();
     setUser(null);
     setIsOpen(false);
