@@ -35,15 +35,6 @@ export function ProfileMenu() {
     };
 
     getUser();
-
-    // Add auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   }, [supabase]); 
 
   const handleLogout = async () => {
