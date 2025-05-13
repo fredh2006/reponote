@@ -14,6 +14,33 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Reponote - Generate Detailed READMEs with AI",
   description: "Reponote leverages AI to create professional, comprehensive README files for your projects in seconds.",
+  openGraph: {
+    title: "Reponote - Generate Detailed READMEs with AI",
+    description: "Reponote leverages AI to create professional, comprehensive README files for your projects in seconds.",
+    url: "https://reponote.org",
+    siteName: "Reponote",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Reponote - AI-Powered README Generator",
+      },
+    ],
+    locale: "en_CA",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Reponote - Generate Detailed READMEs with AI",
+    description: "Reponote leverages AI to create professional, comprehensive README files for your projects in seconds.",
+    images: ["/og-image.png"],
+    creator: "@reponote",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
