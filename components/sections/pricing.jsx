@@ -31,6 +31,28 @@ export default function Pricing() {
       }
     };
     getUser();
+
+    // Add auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        // Re-fetch user's plan when auth state changes
+        const { data: userData } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', session.user.id)
+          .single();
+        if (userData) {
+          setUserPlan(userData.plan);
+        }
+      } else {
+        setUserPlan(null);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [supabase]);
 
   const handleStripeCheckout = async () => {

@@ -18,7 +18,16 @@ export default function Hero(){
             setUser(user);
         };
         getUser();
-    }, []);
+
+        // Add auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => {
+            subscription?.unsubscribe();
+        };
+    }, [supabase]);
 
     const handleLogin = async () => {
         const { data, error } = await supabase.auth.signInWithOAuth({

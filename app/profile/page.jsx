@@ -78,9 +78,41 @@ export default function Profile() {
         fetchUserAndRepos();
 
         // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_OUT') {
                 router.push('/');
+            } else if (event === 'SIGNED_IN' && session?.user) {
+                setUser(session.user);
+                // Re-fetch user data and repos when signed in
+                try {
+                    const { data: userData, error: userDataError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+                    
+                    if (userDataError) throw userDataError;
+                    
+                    setUserData(userData);
+                    const provider_token = userData?.provider_token;
+                    
+                    if (provider_token) {
+                        const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=6', {
+                            headers: {
+                                'Authorization': `Bearer ${provider_token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            setRepos(data);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error re-fetching user data:', error);
+                    setError(error.message);
+                }
             }
         });
 
