@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
           {/* Left Column - About */}
           <div className="space-y-6">
-            <h3 className="text-white text-2xl font-semibold">RepoNote</h3>
+            <h3 className="text-white text-2xl font-semibold">Reponote</h3>
             <p className="text-gray-400 text-lg leading-relaxed">
               Your personal repository for notes, ideas, and knowledge management. 
               Organize your thoughts and boost your productivity.
@@ -33,7 +33,7 @@ const Footer = () => {
               </a>
             </div>
             <p className="text-base text-gray-400 mt-8">
-              &copy; {new Date().getFullYear()} RepoNote. All rights reserved.
+              &copy; {new Date().getFullYear()} Reponote. All rights reserved.
             </p>
           </div>
         </div>
