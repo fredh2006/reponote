@@ -72,7 +72,7 @@ export default function Navbar({ sticky = true }) {
   return (
     <header className={`border-b w-full bg-white/80 backdrop-blur-sm ${sticky ? 'sticky top-0' : ''} z-50`}>
       <div className="w-full flex h-16 items-center px-4 md:px-8 lg:px-12 justify-between relative">
-        {/* Logo */}
+
         <div className="flex items-center">
           <Link href="/" className="flex items-center -space-x-1">
             <Image
@@ -86,7 +86,6 @@ export default function Navbar({ sticky = true }) {
           </Link>
         </div>
 
-        {/* Center Nav (Desktop only) */}
         <nav className="hidden md:flex gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {user ? (
             <>
@@ -104,7 +103,6 @@ export default function Navbar({ sticky = true }) {
           )}
         </nav>
 
-        {/* Right Side */}
         <div className="flex items-center gap-4 md:w-[200px] md:justify-end">
           {user ? (
             <>
@@ -137,11 +135,10 @@ export default function Navbar({ sticky = true }) {
         </div>
       </div>
 
-      {/* Mobile menu for logged-in user */}
       {isMobileMenuOpen && user && (
         <div className="md:hidden border-t">
           <div className="px-4 py-4 space-y-4">
-            {/* Profile header */}
+
             <div className="flex items-center gap-3 px-2 py-2 border-b border-gray-100">
               <img
                 src={user.user_metadata.avatar_url}
@@ -156,7 +153,6 @@ export default function Navbar({ sticky = true }) {
               </div>
             </div>
 
-            {/* Links */}
             <div className="space-y-2">
               <Link href="/create" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Create</Link>
               <Link href="/docs" className="block px-2 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-4 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>Docs</Link>
@@ -178,7 +174,6 @@ export default function Navbar({ sticky = true }) {
         </div>
       )}
 
-      {/* Mobile menu for guests */}
       {isMobileMenuOpen && !user && (
         <div className="md:hidden border-t">
           <div className="px-4 py-4 space-y-2">
