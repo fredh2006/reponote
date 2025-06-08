@@ -15,7 +15,6 @@ export async function POST(req) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Get the user's Stripe customer ID
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('stripe_customer_id')
@@ -27,7 +26,6 @@ export async function POST(req) {
       return NextResponse.json({ error: 'No Stripe customer found' }, { status: 404 });
     }
 
-    // Create a Stripe billing portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: userData.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile`,

@@ -104,7 +104,6 @@ export async function POST(req) {
           }
         }
 
-        // Update plan, customer id, and subscription status based on payment type
         const { data: updateData, error: updateError } = await supabase
           .from('users')
           .update({ 

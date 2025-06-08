@@ -12,7 +12,7 @@ export default function Documentation() {
             <div className="container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="space-y-8">
-                        {/* Introduction */}
+
                         <section className="space-y-4">
                             <h1 className="text-4xl font-bold text-gray-900">Documentation</h1>
                             <p className="text-lg text-gray-600">
@@ -21,7 +21,7 @@ export default function Documentation() {
                             </p>
                         </section>
 
-                        {/* Getting Started */}
+
                         <section className="space-y-4">
                             <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                                 <Sparkles className="w-6 h-6" />
@@ -38,14 +38,13 @@ export default function Documentation() {
                             </div>
                         </section>
 
-                        {/* Features */}
                         <section className="space-y-4">
                             <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                                 <Settings className="w-6 h-6" />
                                 Features
                             </h2>
                             <div className="grid gap-6">
-                                {/* File Selection */}
+
                                 <div className="bg-white p-6 rounded-lg border shadow-sm">
                                     <h3 className="text-xl font-semibold text-gray-900 mb-3">File Selection</h3>
                                     <p className="text-gray-600 mb-4">
@@ -59,7 +58,6 @@ export default function Documentation() {
                                     </ul>
                                 </div>
 
-                                {/* AI Generation */}
                                 <div className="bg-white p-6 rounded-lg border shadow-sm">
                                     <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered Generation</h3>
                                     <p className="text-gray-600 mb-4">
@@ -86,7 +84,6 @@ export default function Documentation() {
                                     </div>
                                 </div>
 
-                                {/* README Structure */}
                                 <div className="bg-white p-6 rounded-lg border shadow-sm">
                                     <h3 className="text-xl font-semibold text-gray-900 mb-3">README Structure</h3>
                                     <p className="text-gray-600 mb-4">
@@ -116,7 +113,6 @@ export default function Documentation() {
                             </div>
                         </section>
 
-                        {/* Best Practices */}
                         <section className="space-y-4">
                             <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                                 <FileText className="w-6 h-6" />
@@ -144,7 +140,6 @@ export default function Documentation() {
                             </div>
                         </section>
 
-                        {/* Troubleshooting */}
                         <section className="space-y-4">
                             <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                                 <Github className="w-6 h-6" />

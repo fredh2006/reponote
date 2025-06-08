@@ -14,7 +14,6 @@ export default function SuccessPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         router.push('/');

@@ -71,22 +71,6 @@ export default function Hero(){
                     </Button>
                   </Link>
                 </div>
-                <div className="mt-4">
-                  <a 
-                    href="https://www.producthunt.com/posts/reponote?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-reponote" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="hover:opacity-90 transition-opacity inline-block"
-                  >
-                    <img 
-                      src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=964148&theme=light&t=1746998073630" 
-                      alt="Reponote - Detailed and professional README generator. | Product Hunt" 
-                      style={{ width: '250px', height: '54px' }} 
-                      width="250" 
-                      height="54" 
-                    />
-                  </a>
-                </div>
               </div>
               <div className="flex items-center justify-center">
                 <div className="relative w-full max-w-[500px] rounded-xl border bg-white p-6 shadow-xl dark:bg-gray-800">

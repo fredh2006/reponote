@@ -11,7 +11,7 @@ export default function Pricing() {
   const [user, setUser] = useState(null);
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
-  const [paymentType, setPaymentType] = useState('subscription'); // 'subscription' or 'lifetime'
+  const [paymentType, setPaymentType] = useState('subscription');
   const supabase = createClient();
 
   useEffect(() => {
@@ -103,7 +103,6 @@ export default function Pricing() {
             </p>
           </div>
 
-          {/* Payment Type Switcher */}
           <div className="flex items-center gap-4 bg-gray-100 p-1 rounded-lg">
             <button
               onClick={() => setPaymentType('subscription')}

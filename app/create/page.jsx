@@ -25,7 +25,6 @@ export default function Create(){
                 
                 setUser(user);
                 
-                // Get user data from the users table
                 const { data: userData, error: userDataError } = await supabase
                     .from('users')
                     .select('*')
@@ -43,12 +42,10 @@ export default function Create(){
                     return;
                 }
 
-                // Create a promise that rejects after 10 seconds
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('Request timed out')), 10000);
                 });
 
-                // Race between the fetch and the timeout
                 const response = await Promise.race([
                     fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
                         headers: {
@@ -77,7 +74,6 @@ export default function Create(){
     
         fetchUserAndRepos();
 
-        // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_OUT') {
                 router.push('/');
@@ -119,7 +115,6 @@ export default function Create(){
                     <p className="text-gray-600 mt-1">Edit its README</p>
                   </div>
     
-                  {/* Search Bar */}
                   <div className="relative mb-6">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
@@ -131,7 +126,6 @@ export default function Create(){
                     />
                   </div>
     
-                  {/* Repository List */}
                   {loading? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="w-6 h-6 animate-spin text-gray-900" />

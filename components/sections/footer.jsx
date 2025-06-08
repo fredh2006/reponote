@@ -13,7 +13,6 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Right Column - Links */}
           <div className="flex flex-col justify-between">
             <div className="flex space-x-8 text-base text-gray-400">
               <Link 

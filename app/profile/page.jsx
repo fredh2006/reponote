@@ -26,7 +26,6 @@ export default function Profile() {
                 
                 setUser(user);
 
-                // Get user data from the users table
                 const { data: userData, error: userDataError } = await supabase
                     .from('users')
                     .select('*')
@@ -43,12 +42,10 @@ export default function Profile() {
                     return;
                 }
 
-                // Create a promise that rejects after 10 seconds
                 const timeoutPromise = new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('Request timed out')), 10000);
                 });
 
-                // Race between the fetch and the timeout
                 const response = await Promise.race([
                     fetch('https://api.github.com/user/repos?sort=updated&per_page=6', {
                         headers: {
@@ -77,7 +74,6 @@ export default function Profile() {
     
         fetchUserAndRepos();
 
-        // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_OUT') {
                 router.push('/');
@@ -207,7 +203,6 @@ export default function Profile() {
                         </div>
 
                         <div className="p-4 sm:p-6 space-y-8">
-                            {/* Repositories */}
                             <div>
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-lg font-semibold text-gray-900">Recent Repositories</h2>

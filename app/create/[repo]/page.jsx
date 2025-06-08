@@ -36,7 +36,6 @@ export default function CreateRepo({ params }) {
 
             setUser(user);
 
-            // Get user data from the users table
             const { data: userData, error: userDataError } = await supabase
                 .from('users')
                 .select('provider_token')
@@ -51,7 +50,6 @@ export default function CreateRepo({ params }) {
 
             setToken(userData.provider_token);
 
-            // Fetch repository data
             const response = await fetch(`https://api.github.com/repos/${decodedRepo}`, {
                 headers: {
                     'Authorization': `Bearer ${userData.provider_token}`,
@@ -66,7 +64,6 @@ export default function CreateRepo({ params }) {
             const repoData = await response.json();
             setRepoData(repoData);
 
-            // Fetch languages
             const langResponse = await fetch(`https://api.github.com/repos/${decodedRepo}/languages`, {
                 headers: {
                     'Authorization': `Bearer ${userData.provider_token}`,
@@ -84,7 +81,6 @@ export default function CreateRepo({ params }) {
                 }
             }
 
-            // Fetch README
             const readmeResponse = await fetch(`https://api.github.com/repos/${decodedRepo}/contents/README.md`, {
                 headers: {
                     'Authorization': `Bearer ${userData.provider_token}`,
@@ -98,7 +94,6 @@ export default function CreateRepo({ params }) {
                 setReadme(content);
             }
 
-            // Fetch file tree
             const treeResponse = await fetch(`https://api.github.com/repos/${decodedRepo}/git/trees/main?recursive=1`, {
                 headers: {
                     'Authorization': `Bearer ${userData.provider_token}`,
@@ -123,7 +118,6 @@ export default function CreateRepo({ params }) {
     useEffect(() => {
         getProviderToken();
 
-        // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_OUT') {
                 router.push('/');
@@ -186,7 +180,6 @@ export default function CreateRepo({ params }) {
         };
 
         try {
-            // JavaScript/TypeScript frameworks
             if (["JavaScript", "TypeScript", "Vue"].includes(topLanguage)) {
                 const pkgPath = await findFileRecursive('package.json');
                 const pkgRaw = pkgPath ? await fetchFileContent(pkgPath) : null;
@@ -195,7 +188,6 @@ export default function CreateRepo({ params }) {
                 const pkg = JSON.parse(pkgRaw);
                 const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-                // Check for framework-specific dependencies
                 if (deps?.['next'] || deps?.['@next/core']) return 'Next.js';
                 if (deps?.['react'] || deps?.['react-dom']) return 'React';
                 if (deps?.['express']) return 'Express';
@@ -208,7 +200,6 @@ export default function CreateRepo({ params }) {
                 if (deps?.['@remix-run/core']) return 'Remix';
                 return 'None';
             }
-            // Python frameworks
             else if (topLanguage === 'Python') {
                 const reqPath = await findFileRecursive('requirements.txt');
                 const pyprojPath = await findFileRecursive('pyproject.toml');
@@ -224,7 +215,6 @@ export default function CreateRepo({ params }) {
                 }
 
                 if (content) {
-                    // Check for framework-specific patterns
                     if (content.match(/flask[>=<]/i) || content.includes('from flask import')) return 'Flask';
                     if (content.match(/django[>=<]/i) || content.includes('from django')) return 'Django';
                     if (content.match(/fastapi[>=<]/i) || content.includes('from fastapi')) return 'FastAPI';
@@ -236,7 +226,6 @@ export default function CreateRepo({ params }) {
                     return 'None';
                 }
             }
-            // Ruby frameworks
             else if (topLanguage === 'Ruby') {
                 const gemfilePath = await findFileRecursive('Gemfile');
                 if (gemfilePath) {
@@ -247,7 +236,6 @@ export default function CreateRepo({ params }) {
                     return 'None';
                 }
             }
-            // PHP frameworks
             else if (topLanguage === 'PHP') {
                 const composerPath = await findFileRecursive('composer.json');
                 if (composerPath) {
@@ -259,7 +247,6 @@ export default function CreateRepo({ params }) {
                     return 'None';
                 }
             }
-            // Java frameworks
             else if (topLanguage === 'Java') {
                 const pomPath = await findFileRecursive('pom.xml');
                 const gradlePath = await findFileRecursive('build.gradle');
@@ -279,7 +266,6 @@ export default function CreateRepo({ params }) {
                     return 'None';
                 }
             }
-            // Go frameworks
             else if (topLanguage === 'Go') {
                 const goModPath = await findFileRecursive('go.mod');
                 if (goModPath) {
@@ -291,7 +277,6 @@ export default function CreateRepo({ params }) {
                     return 'None';
                 }
             }
-            // Rust frameworks
             else if (topLanguage === 'Rust') {
                 const cargoPath = await findFileRecursive('Cargo.toml');
                 if (cargoPath) {
@@ -386,7 +371,6 @@ export default function CreateRepo({ params }) {
         try {
             const summarizedFiles = await Promise.all(
                 files.map(async (file) => {
-                    // Skip small files (under 500 chars) - no need to summarize
                     if (file.content.length <= 1500) return file;
 
                     const prompt = `
@@ -428,7 +412,6 @@ export default function CreateRepo({ params }) {
             return summarizedFiles;
         } catch (error) {
             console.error("File summarization error:", error);
-            // Fallback to original files if summarization fails
             return files;
         }
     };
@@ -436,7 +419,6 @@ export default function CreateRepo({ params }) {
     const generateReadmeFromAI = async () => {
         if (selectedFiles.length === 0) return;
 
-        // Check usage limit for free plan
         if (user?.id) {
             const { data: userData, error } = await supabase
                 .from('users')
@@ -599,7 +581,6 @@ export default function CreateRepo({ params }) {
                         }
                     }
                 } catch (error) {
-                    // Fallback to gpt-4.1 if DeepSeek fails
                     const fallbackPrompt = prompt;
                     const response = await fetch('/api/openai', {
                         method: 'POST',
