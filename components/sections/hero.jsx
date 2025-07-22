@@ -2,39 +2,19 @@
 
 import { Button } from "../ui/button";
 import { ArrowRight, Github, FileText } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function Hero(){
-    const supabase = createClient();
     const router = useRouter();
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-        };
-        getUser();
-    }, []);
+    const { user, signInWithGitHub } = useAuth();
 
     const handleLogin = async () => {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'github',
-            options: {
-                scopes: 'repo user:email',
-                queryParams: {
-                    prompt: 'consent',
-                },
-                redirectTo: `${window.location.origin}/auth/callback`,
-                skipBrowserRedirect: false
-            }
-        });
-
-        if (error) {
-            console.error('Error:', error.message);
+        try {
+            await signInWithGitHub();
+        } catch (error) {
+            console.error('Login error:', error);
         }
     };
 

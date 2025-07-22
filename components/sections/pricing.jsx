@@ -4,21 +4,18 @@ import { Button } from "@/components/ui/button";
 import { subscribeAction } from "@/app/actions/stripe";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function Pricing() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, signInWithGitHub, supabase } = useAuth();
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [paymentType, setPaymentType] = useState('subscription');
-  const supabase = createClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const getUserPlan = async () => {
       if (user) {
-        setUser(user);
         // Fetch user's plan
         const { data: userData } = await supabase
           .from('users')
@@ -30,8 +27,8 @@ export default function Pricing() {
         }
       }
     };
-    getUser();
-  }, [supabase]);
+    getUserPlan();
+  }, [user, supabase]);
 
   const handleStripeCheckout = async () => {
     if (!user) {
@@ -78,17 +75,11 @@ export default function Pricing() {
   };
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        scopes: 'repo user:email',
-        queryParams: { prompt: 'consent' },
-        redirectTo: `${window.location.origin}/auth/callback`,
-        skipBrowserRedirect: false
-      }
-    });
-
-    if (error) console.error('Login error:', error.message);
+    try {
+      await signInWithGitHub();
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   return (

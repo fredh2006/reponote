@@ -3,14 +3,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { LogOut, User, ChevronDown, Github } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/auth-provider'
 
 
 export function ProfileMenu() {
-    const [user, setUser] = useState(null);
     const [isOpen, setIsOpen] = useState(false)
     const menuRef = useRef(null)
-    const supabase = createClient()
+    const { user, signOut } = useAuth()
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -23,24 +22,13 @@ export function ProfileMenu() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (user) {
-        setUser(user);
-      } else if (error) {
-        console.error("Failed to fetch user:", error.message);
-      }
-    };
-
-    getUser();
-  }, [supabase]); 
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setIsOpen(false);
+    try {
+      await signOut();
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (!user) return null

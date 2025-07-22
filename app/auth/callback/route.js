@@ -1,41 +1,23 @@
-import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request) {
-const cookieStore = await cookies()
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/';
 
   if (code) {
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        {
-          cookies: {
-            getAll() {
-              return cookieStore.getAll()
-            },
-            setAll(cookiesToSet) {
-              try {
-                cookiesToSet.forEach(({ name, value, options }) =>
-                  cookieStore.set(name, value, options)
-                )
-              } catch {
-              }
-            },
-          },
-        }
-      )
-    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error && sessionData?.session) {
-      // Get fresh user data from the session
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const supabase = await createClient();
+    const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (!error && session) {
+      // Get the user from the session
+      const user = session.user;
       
-      if (!userError && user) {
+      if (user) {
         // Store GitHub token if available
-        const provider_token = sessionData.session?.provider_token || null;
+        const provider_token = session.provider_token || null;
         
         const { data: existingUser, error: checkError } = await supabase
           .from('users')
@@ -69,8 +51,6 @@ const cookieStore = await cookies()
           }
         }
         
-        // Add small delay to ensure session is properly established
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer

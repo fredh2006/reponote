@@ -3,99 +3,33 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ProfileMenu } from "@/components/ui/profile-menu";
 import Image from "next/image";
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function Navbar({ sticky = true }) {
-  const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const supabase = createClient();
+  const { user, loading, signInWithGitHub, signOut } = useAuth();
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
-  const storeGithubToken = async (userId, token) => {
-    if (isHomePage && token) {
-      const { error } = await supabase
-        .from('users')
-        .upsert({ id: userId, provider_token: token });
-
-      if (error) console.error('Error storing GitHub token:', error);
+  const handleLogin = async () => {
+    try {
+      await signInWithGitHub();
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        // First check if we have a session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (mounted && session?.user) {
-          setUser(session.user);
-          
-          // Store GitHub token if available
-          if (session.provider_token) {
-            await storeGithubToken(session.user.id, session.provider_token);
-          }
-        } else if (mounted && !session) {
-          // Only try getUser if no session exists
-          const { data: { user }, error } = await supabase.auth.getUser();
-          if (mounted && user) {
-            setUser(user);
-          } else if (error && error.message !== "Auth session missing!") {
-            console.error("Failed to fetch user:", error.message);
-          }
-        }
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-      }
-    };
-
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setUser(session?.user ?? null);
-          if (session?.provider_token) {
-            await storeGithubToken(session.user.id, session.provider_token);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        } else {
-          setUser(session?.user ?? null);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription?.unsubscribe();
-    };
-  }, [supabase]);
-
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        scopes: 'repo user:email',
-        queryParams: { prompt: 'consent' },
-        redirectTo: `${window.location.origin}/auth/callback`,
-        skipBrowserRedirect: false
-      }
-    });
-
-    if (error) console.error('Login error:', error.message);
-  };
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await signOut();
+      setIsMobileMenuOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
