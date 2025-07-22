@@ -7,7 +7,7 @@ import Navbar from '@/components/sections/navbar';
 import { Button } from "@/components/ui/button";
 import { Loader2, Star, GitFork, ChevronDown, ChevronRight } from "lucide-react";
 
-export default function CreateRepo({ params }) {
+export default function CreateRepo() {
     const router = useRouter();
     const supabase = createClient();
     const { repo } = useParams();
