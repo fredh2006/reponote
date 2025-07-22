@@ -27,26 +27,55 @@ export default function Navbar({ sticky = true }) {
   };
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user) setUser(user);
-      else if (error && error.message !== "Auth session missing!") {
-        console.error("Failed to fetch user:", error.message);
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // First check if we have a session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (mounted && session?.user) {
+          setUser(session.user);
+          
+          // Store GitHub token if available
+          if (session.provider_token) {
+            await storeGithubToken(session.user.id, session.provider_token);
+          }
+        } else if (mounted && !session) {
+          // Only try getUser if no session exists
+          const { data: { user }, error } = await supabase.auth.getUser();
+          if (mounted && user) {
+            setUser(user);
+          } else if (error && error.message !== "Auth session missing!") {
+            console.error("Failed to fetch user:", error.message);
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
       }
     };
 
-    getUser();
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setUser(session?.user ?? null);
-        if (session?.provider_token) {
-          await storeGithubToken(session.user.id, session.provider_token);
+      async (event, session) => {
+        if (!mounted) return;
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setUser(session?.user ?? null);
+          if (session?.provider_token) {
+            await storeGithubToken(session.user.id, session.provider_token);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        } else {
+          setUser(session?.user ?? null);
         }
       }
     );
 
     return () => {
+      mounted = false;
       subscription?.unsubscribe();
     };
   }, [supabase]);

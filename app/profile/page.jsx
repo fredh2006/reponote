@@ -18,19 +18,34 @@ export default function Profile() {
     const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
     useEffect(() => {
+        let mounted = true;
+
         const fetchUserAndRepos = async () => {
             try {
-                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                // First ensure we have a valid session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                 
-                if (userError) throw userError;
+                if (!mounted) return;
                 
-                setUser(user);
+                if (sessionError || !session) {
+                    // Try to get user if session check fails
+                    const { data: { user }, error: userError } = await supabase.auth.getUser();
+                    if (userError || !user) throw new Error('Not authenticated');
+                    setUser(user);
+                } else {
+                    setUser(session.user);
+                }
+                
+                // Small delay to ensure auth state is stable
+                await new Promise(resolve => setTimeout(resolve, 200));
 
                 const { data: userData, error: userDataError } = await supabase
                     .from('users')
                     .select('*')
-                    .eq('id', user.id)
+                    .eq('id', session?.user?.id || user?.id)
                     .single();
+                
+                if (!mounted) return;
                 
                 if (userDataError) throw userDataError;
                 
@@ -59,16 +74,24 @@ export default function Profile() {
                 if (!response.ok) throw new Error('Failed to fetch repositories');
                 
                 const data = await response.json();
-                setRepos(data);
+                if (mounted) {
+                    setRepos(data);
+                }
             } catch (error) {
                 console.error('Error:', error);
+                if (!mounted) return;
+                
                 if (error.message === 'Request timed out') {
                     setError('Request took too long. Please try logging in again.');
+                } else if (error.message === 'Not authenticated') {
+                    router.push('/');
                 } else {
                     setError(error.message);
                 }
             } finally {
-                setLoading(false);
+                if (mounted) {
+                    setLoading(false);
+                }
             }
         };
     
@@ -81,6 +104,7 @@ export default function Profile() {
         });
 
         return () => {
+            mounted = false;
             subscription?.unsubscribe();
         };
     }, [supabase, router]);

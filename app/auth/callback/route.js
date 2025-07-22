@@ -28,11 +28,15 @@ const cookieStore = await cookies()
           },
         }
       )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && sessionData?.session) {
+      // Get fresh user data from the session
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       
       if (!userError && user) {
+        // Store GitHub token if available
+        const provider_token = sessionData.session?.provider_token || null;
+        
         const { data: existingUser, error: checkError } = await supabase
           .from('users')
           .select('id')
@@ -47,13 +51,26 @@ const cookieStore = await cookies()
               email: user.email,
               github_username: user.user_metadata.user_name,
               plan: 'free',
-              provider_token: null
+              provider_token: provider_token
             })
 
           if (upsertError) {
             console.error('Error storing user data:', upsertError)
           }
+        } else if (provider_token) {
+          // Update existing user with provider token
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ provider_token: provider_token })
+            .eq('id', user.id)
+            
+          if (updateError) {
+            console.error('Error updating provider token:', updateError)
+          }
         }
+        
+        // Add small delay to ensure session is properly established
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
