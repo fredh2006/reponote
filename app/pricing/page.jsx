@@ -21,14 +21,17 @@ export default function PricingPage(){
         const { data: userData, error } = await supabase
           .from('users')
           .select('plan')
-          .eq('id', user.id)
-          .single();
-          console.log(userData)
-        if (userData) {
-          console.log('User plan:', userData.plan);
-          setUserPlan(userData.plan);
+          .eq('id', user.id);
+        
+        console.log('Query result:', { userData, error });
+        
+        if (error) {
+          console.error('Database error:', error);
+        } else if (userData && userData.length > 0) {
+          console.log('User plan:', userData[0].plan);
+          setUserPlan(userData[0].plan);
         } else {
-          console.log('No userData found');
+          console.log('No user record found in users table');
         }
       } else {
         console.log('No user, setting plan to null');
