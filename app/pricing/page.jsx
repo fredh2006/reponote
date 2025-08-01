@@ -16,16 +16,23 @@ export default function PricingPage(){
 
   useEffect(() => {
     const getUserPlan = async () => {
+      console.log('getUserPlan called, user:', user);
       if (user) {
-        const { data: userData } = await supabase
+        console.log('User ID:', user.id);
+        const { data: userData, error } = await supabase
           .from('users')
           .select('plan')
           .eq('id', user.id)
           .single();
+        console.log('Database query result:', { userData, error });
         if (userData) {
+          console.log('User plan:', userData.plan);
           setUserPlan(userData.plan);
+        } else {
+          console.log('No userData found');
         }
       } else {
+        console.log('No user, setting plan to null');
         setUserPlan(null);
       }
     };
@@ -34,13 +41,17 @@ export default function PricingPage(){
 
   useEffect(() => {
     if (user) {
+      console.log('Setting up plan refresh timer for user:', user.id);
       const timer = setTimeout(async () => {
-        const { data: userData } = await supabase
+        console.log('Plan refresh timer triggered');
+        const { data: userData, error } = await supabase
           .from('users')
           .select('plan')
           .eq('id', user.id)
           .single();
+        console.log('Plan refresh query result:', { userData, error });
         if (userData) {
+          console.log("Refreshed user plan:", userData.plan)
           setUserPlan(userData.plan);
         }
       }, 2000);

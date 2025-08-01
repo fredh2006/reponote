@@ -83,12 +83,18 @@ export function AuthProvider({ children }) {
   }, [supabase]);
 
   const signInWithGitHub = async () => {
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`;
+    
+    console.log('Attempting login with redirect URL:', redirectUrl);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
         scopes: 'repo user:email',
         queryParams: { prompt: 'consent' },
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl,
       }
     });
 

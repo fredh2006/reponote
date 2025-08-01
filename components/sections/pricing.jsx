@@ -23,6 +23,7 @@ export default function Pricing() {
           .eq('id', user.id)
           .single();
         if (userData) {
+          console.log(userData.plan)
           setUserPlan(userData.plan);
         }
       } else {
