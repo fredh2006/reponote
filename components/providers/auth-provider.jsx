@@ -20,6 +20,13 @@ export function AuthProvider({ children }) {
   const supabase = createClient();
   const router = useRouter();
 
+  const refreshUserData = async () => {
+    if (user) {
+      const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+      setUser(refreshedUser);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -92,12 +99,46 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Logout error:', error);
-      throw error;
+    try {
+      console.log('Starting signOut process...');
+      
+      // Immediately clear user state for better UX
+      setUser(null);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Supabase signOut error:', error);
+      } else {
+        console.log('Successfully signed out from Supabase');
+      }
+      
+      // Clear any local storage items related to auth
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('supabase.auth.token');
+          sessionStorage.clear();
+        } catch (e) {
+          console.warn('Could not clear storage:', e);
+        }
+      }
+      
+      console.log('Navigating to home page...');
+      // Use window.location for a hard refresh to ensure clean state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Unexpected logout error:', error);
+      // Still try to navigate even if there's an error
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      } else {
+        router.push('/');
+      }
     }
-    router.push('/');
   };
 
   const value = {
@@ -105,7 +146,8 @@ export function AuthProvider({ children }) {
     loading,
     signInWithGitHub,
     signOut,
-    supabase
+    supabase,
+    refreshUserData
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

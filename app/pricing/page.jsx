@@ -5,21 +5,18 @@ import { Button } from "@/components/ui/button";
 import { subscribeAction } from "@/app/actions/stripe";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {createClient} from "@/lib/supabase/client"
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function PricingPage(){
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, signInWithGitHub, supabase, refreshUserData } = useAuth();
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [paymentType, setPaymentType] = useState('subscription');
-  const supabase = createClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const getUserPlan = async () => {
       if (user) {
-        setUser(user);
         const { data: userData } = await supabase
           .from('users')
           .select('plan')
@@ -28,14 +25,32 @@ export default function PricingPage(){
         if (userData) {
           setUserPlan(userData.plan);
         }
+      } else {
+        setUserPlan(null);
       }
     };
-    getUser();
-  }, [supabase]);
+    getUserPlan();
+  }, [user, supabase]);
+
+  useEffect(() => {
+    if (user) {
+      const timer = setTimeout(async () => {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+        if (userData) {
+          setUserPlan(userData.plan);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, supabase]);
 
   const handleStripeCheckout = async () => {
     if (!user) {
-      console.error("No user found");
+      handleLogin();
       return;
     }
 
@@ -51,6 +66,10 @@ export default function PricingPage(){
   };
 
   const handleManageSubscription = async () => {
+    if (!user) {
+      handleLogin();
+      return;
+    }
     try {
       setIsLoadingPortal(true);
       const response = await fetch('/api/stripe/billing-portal', {
@@ -71,6 +90,14 @@ export default function PricingPage(){
       console.error('Error opening customer portal:', error);
     } finally {
       setIsLoadingPortal(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await signInWithGitHub();
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
@@ -178,11 +205,11 @@ export default function PricingPage(){
                   </ul>
                   <div className="mt-6">
                     <Button 
-                      disabled={userPlan === 'free' || userPlan === 'lifetime'}
-                      onClick={userPlan === 'pro' ? handleManageSubscription : undefined}
-                      className={`w-full ${(userPlan === 'free' || userPlan === 'lifetime') ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
+                      disabled={userPlan === 'lifetime'}
+                      onClick={!user ? handleLogin : userPlan === 'pro' ? handleManageSubscription : handleLogin}
+                      className={`w-full ${userPlan === 'lifetime' ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                     >
-                      {userPlan === 'free' ? 'Current Plan' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
+                      {!user ? 'Get Started' : userPlan === 'free' ? 'Get Started' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
                     </Button>
                   </div>
                 </div>
@@ -256,7 +283,7 @@ export default function PricingPage(){
                       disabled={userPlan === 'pro' || userPlan === 'lifetime'}
                       className={`w-full ${(userPlan === 'pro' || userPlan === 'lifetime') ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                     >
-                      {userPlan === 'pro' ? 'Current Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Upgrade Plan'}
+                      {!user ? 'Get Started' : userPlan === 'pro' ? 'Current Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Upgrade Plan'}
                     </Button>
                   </div>
                 </div>
@@ -330,7 +357,7 @@ export default function PricingPage(){
                     disabled={userPlan === 'lifetime'}
                     className={`w-full ${userPlan === 'lifetime' ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                   >
-                    {userPlan === 'lifetime' ? 'Current Plan' : 'Get Lifetime Access'}
+                    {!user ? 'Get Started' : userPlan === 'lifetime' ? 'Current Plan' : 'Get Lifetime Access'}
                   </Button>
                 </div>
               </div>

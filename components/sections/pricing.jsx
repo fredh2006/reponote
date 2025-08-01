@@ -8,7 +8,7 @@ import { useAuth } from '@/components/providers/auth-provider';
 
 export default function Pricing() {
   const router = useRouter();
-  const { user, signInWithGitHub, supabase } = useAuth();
+  const { user, signInWithGitHub, supabase, refreshUserData } = useAuth();
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [paymentType, setPaymentType] = useState('subscription');
@@ -25,9 +25,27 @@ export default function Pricing() {
         if (userData) {
           setUserPlan(userData.plan);
         }
+      } else {
+        setUserPlan(null);
       }
     };
     getUserPlan();
+  }, [user, supabase]);
+
+  useEffect(() => {
+    if (user) {
+      const timer = setTimeout(async () => {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+        if (userData) {
+          setUserPlan(userData.plan);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
   }, [user, supabase]);
 
   const handleStripeCheckout = async () => {
@@ -185,11 +203,11 @@ export default function Pricing() {
                 </ul>
                 <div className="mt-6">
                   <Button 
-                    disabled={userPlan === 'free' || userPlan === 'lifetime'}
-                    onClick={userPlan === 'pro' ? handleManageSubscription : handleStripeCheckout}
-                    className={`w-full ${(userPlan === 'free' || userPlan === 'lifetime') ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
+                    disabled={userPlan === 'lifetime'}
+                    onClick={!user ? handleLogin : userPlan === 'pro' ? handleManageSubscription : handleLogin}
+                    className={`w-full ${userPlan === 'lifetime' ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                   >
-                    {!user ? 'Get Started' : userPlan === 'free' ? 'Current Plan' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
+                    {!user ? 'Get Started' : userPlan === 'free' ? 'Get Started' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
                   </Button>
                 </div>
               </div>
