@@ -9,13 +9,19 @@ import { useAuth } from '@/components/providers/auth-provider';
 
 export default function PricingPage(){
   const router = useRouter();
-  const { user, signInWithGitHub, supabase, refreshUserData } = useAuth();
+  const { user, loading, signInWithGitHub, supabase, refreshUserData } = useAuth();
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [paymentType, setPaymentType] = useState('subscription');
 
   useEffect(() => {
     const getUserPlan = async () => {
+      // Skip if auth is still loading
+      if (loading) {
+        console.log('Auth still loading, skipping query');
+        return;
+      }
+      
       if (user) {
         console.log('User ID:', user.id);
         const { data: userData, error } = await supabase
@@ -34,12 +40,12 @@ export default function PricingPage(){
           console.log('No user record found in users table');
         }
       } else {
-        console.log('No user, setting plan to null');
+        console.log('No user logged in');
         setUserPlan(null);
       }
     };
     getUserPlan();
-  }, [user, supabase]);
+  }, [user, loading, supabase]);
 
   const handleStripeCheckout = async () => {
     if (!user) {
