@@ -16,7 +16,6 @@ export default function PricingPage(){
 
   useEffect(() => {
     const getUserPlan = async () => {
-      console.log('getUserPlan called, user:', user);
       if (user) {
         console.log('User ID:', user.id);
         const { data: userData, error } = await supabase
@@ -24,7 +23,7 @@ export default function PricingPage(){
           .select('plan')
           .eq('id', user.id)
           .single();
-        console.log('Database query result:', { userData, error });
+          console.log(userData)
         if (userData) {
           console.log('User plan:', userData.plan);
           setUserPlan(userData.plan);
@@ -37,26 +36,6 @@ export default function PricingPage(){
       }
     };
     getUserPlan();
-  }, [user, supabase]);
-
-  useEffect(() => {
-    if (user) {
-      console.log('Setting up plan refresh timer for user:', user.id);
-      const timer = setTimeout(async () => {
-        console.log('Plan refresh timer triggered');
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('plan')
-          .eq('id', user.id)
-          .single();
-        console.log('Plan refresh query result:', { userData, error });
-        if (userData) {
-          console.log("Refreshed user plan:", userData.plan)
-          setUserPlan(userData.plan);
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
   }, [user, supabase]);
 
   const handleStripeCheckout = async () => {
