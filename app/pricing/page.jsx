@@ -16,9 +16,9 @@ export default function PricingPage(){
 
   useEffect(() => {
     const getUserPlan = async () => {
-      // Skip if auth is still loading
+      // Wait for auth to finish loading
       if (loading) {
-        console.log('Auth still loading, skipping query');
+        console.log('Auth still loading, waiting...');
         return;
       }
       
@@ -38,12 +38,15 @@ export default function PricingPage(){
           setUserPlan(userData[0].plan);
         } else {
           console.log('No user record found in users table');
+          // If no record exists, default to 'free' plan
+          setUserPlan('free');
         }
       } else {
         console.log('No user logged in');
         setUserPlan(null);
       }
     };
+    
     getUserPlan();
   }, [user, loading, supabase]);
 
@@ -204,11 +207,11 @@ export default function PricingPage(){
                   </ul>
                   <div className="mt-6">
                     <Button 
-                      disabled={userPlan === 'lifetime'}
-                      onClick={!user ? handleLogin : userPlan === 'pro' ? handleManageSubscription : handleLogin}
-                      className={`w-full ${userPlan === 'lifetime' ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
+                      disabled={userPlan === 'free' || userPlan === 'lifetime'}
+                      onClick={!user ? handleLogin : userPlan === 'free' ? undefined : userPlan === 'pro' ? handleManageSubscription : handleLogin}
+                      className={`w-full ${(userPlan === 'free' || userPlan === 'lifetime') ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                     >
-                      {!user ? 'Get Started' : userPlan === 'free' ? 'Get Started' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
+                      {!user ? 'Get Started' : userPlan === 'free' ? 'Current Plan' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
                     </Button>
                   </div>
                 </div>

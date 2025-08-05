@@ -8,46 +8,43 @@ import { useAuth } from '@/components/providers/auth-provider';
 
 export default function Pricing() {
   const router = useRouter();
-  const { user, signInWithGitHub, supabase, refreshUserData } = useAuth();
+  const { user, loading, signInWithGitHub, supabase, refreshUserData } = useAuth();
   const [userPlan, setUserPlan] = useState(null);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [paymentType, setPaymentType] = useState('subscription');
 
   useEffect(() => {
     const getUserPlan = async () => {
+      // Wait for auth to finish loading
+      if (loading) {
+        console.log('Auth still loading, waiting...');
+        return;
+      }
+      
       if (user) {
         // Fetch user's plan
-        const { data: userData } = await supabase
+        const { data: userData, error } = await supabase
           .from('users')
           .select('plan')
           .eq('id', user.id)
           .single();
-        if (userData) {
-          console.log(userData.plan)
+        
+        if (error) {
+          console.error('Database error:', error);
+        } else if (userData) {
+          console.log('User plan:', userData.plan);
           setUserPlan(userData.plan);
+        } else {
+          // If no record exists, default to 'free' plan
+          setUserPlan('free');
         }
       } else {
         setUserPlan(null);
       }
     };
     getUserPlan();
-  }, [user, supabase]);
+  }, [user, loading, supabase]);
 
-  useEffect(() => {
-    if (user) {
-      const timer = setTimeout(async () => {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('plan')
-          .eq('id', user.id)
-          .single();
-        if (userData) {
-          setUserPlan(userData.plan);
-        }
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [user, supabase]);
 
   const handleStripeCheckout = async () => {
     if (!user) {
@@ -204,11 +201,11 @@ export default function Pricing() {
                 </ul>
                 <div className="mt-6">
                   <Button 
-                    disabled={userPlan === 'lifetime'}
-                    onClick={!user ? handleLogin : userPlan === 'pro' ? handleManageSubscription : handleLogin}
-                    className={`w-full ${userPlan === 'lifetime' ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
+                    disabled={userPlan === 'free' || userPlan === 'lifetime'}
+                    onClick={!user ? handleLogin : userPlan === 'free' ? undefined : userPlan === 'pro' ? handleManageSubscription : handleLogin}
+                    className={`w-full ${(userPlan === 'free' || userPlan === 'lifetime') ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-gray-900 to-gray-600 hover:bg-gradient-to-r hover:from-gray-900 hover:to-blue-400'} transition-colors`}
                   >
-                    {!user ? 'Get Started' : userPlan === 'free' ? 'Get Started' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
+                    {!user ? 'Get Started' : userPlan === 'free' ? 'Current Plan' : userPlan === 'pro' ? 'Downgrade Plan' : userPlan === 'lifetime' ? 'Lifetime Access' : 'Get Started'}
                   </Button>
                 </div>
               </div>
