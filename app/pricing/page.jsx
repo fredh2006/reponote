@@ -24,18 +24,22 @@ export default function PricingPage(){
       
       if (user) {
         console.log('User ID:', user.id);
+        // Fetch complete user data including plan
         const { data: userData, error } = await supabase
           .from('users')
-          .select('plan')
-          .eq('id', user.id);
+          .select('*')
+          .eq('id', user.id)
+          .single();
         
         console.log('Query result:', { userData, error });
         
         if (error) {
           console.error('Database error:', error);
-        } else if (userData && userData.length > 0) {
-          console.log('User plan:', userData[0].plan);
-          setUserPlan(userData[0].plan);
+          // If no record exists, default to 'free' plan
+          setUserPlan('free');
+        } else if (userData) {
+          console.log('User plan:', userData.plan || 'free');
+          setUserPlan(userData.plan || 'free');
         } else {
           console.log('No user record found in users table');
           // If no record exists, default to 'free' plan

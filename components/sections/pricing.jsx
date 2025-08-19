@@ -22,18 +22,20 @@ export default function Pricing() {
       }
       
       if (user) {
-        // Fetch user's plan
+        // Fetch complete user data including plan
         const { data: userData, error } = await supabase
           .from('users')
-          .select('plan')
+          .select('*')
           .eq('id', user.id)
           .single();
         
         if (error) {
           console.error('Database error:', error);
+          // If no record exists, default to 'free' plan
+          setUserPlan('free');
         } else if (userData) {
-          console.log('User plan:', userData.plan);
-          setUserPlan(userData.plan);
+          console.log('User plan:', userData.plan || 'free');
+          setUserPlan(userData.plan || 'free');
         } else {
           // If no record exists, default to 'free' plan
           setUserPlan('free');
